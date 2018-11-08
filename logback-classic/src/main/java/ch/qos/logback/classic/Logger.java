@@ -1,13 +1,13 @@
 /**
  * Logback: the reliable, generic, fast and flexible logging framework.
  * Copyright (C) 1999-2015, QOS.ch. All rights reserved.
- *
+ * <p>
  * This program and the accompanying materials are dual-licensed under
  * either the terms of the Eclipse Public License v1.0 as published by
  * the Eclipse Foundation
- *
- *   or (per the licensee's choosing)
- *
+ * <p>
+ * or (per the licensee's choosing)
+ * <p>
  * under the terms of the GNU Lesser General Public License version 2.1
  * as published by the Free Software Foundation.
  */
@@ -20,7 +20,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import com.github.dapeng.logger.MDCHelper;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.slf4j.Marker;
 import org.slf4j.spi.LocationAwareLogger;
 
@@ -72,7 +74,7 @@ public final class Logger implements org.slf4j.Logger, LocationAwareLogger, Appe
      * the 'aai'ariable is set is within the addAppender method. This method is
      * synchronized on 'this' (Logger) protecting against simultaneous
      * re-configuration of this logger (a very unlikely scenario).
-     * 
+     *
      * <p>
      * It is further assumed that the AppenderAttachableImpl is responsible for
      * its internal synchronization and thread safety. Thus, we can get away with
@@ -176,7 +178,7 @@ public final class Logger implements org.slf4j.Logger, LocationAwareLogger, Appe
     /**
      * This method is invoked by parent logger to let this logger know that the
      * prent's levelInt changed.
-     * 
+     *
      * @param newParentLevelInt
      */
     private synchronized void handleParentLevelChange(int newParentLevelInt) {
@@ -247,9 +249,8 @@ public final class Logger implements org.slf4j.Logger, LocationAwareLogger, Appe
 
     /**
      * Invoke all the appenders of this logger.
-     * 
-     * @param event
-     *          The event to log
+     *
+     * @param event The event to log
      */
     public void callAppenders(ILoggingEvent event) {
         int writes = 0;
@@ -287,15 +288,14 @@ public final class Logger implements org.slf4j.Logger, LocationAwareLogger, Appe
      * Create a child of this logger by suffix, that is, the part of the name
      * extending this logger. For example, if this logger is named "x.y" and the
      * lastPart is "z", then the created child logger will be named "x.y.z".
-     * 
+     *
      * <p>
      * IMPORTANT: Calls to this method must be within a synchronized block on this
      * logger.
-     * 
-     * @param lastPart
-     *          the suffix (i.e. last part) of the child logger name. This
-     *          parameter may not include dots, i.e. the logger separator
-     *          character.
+     *
+     * @param lastPart the suffix (i.e. last part) of the child logger name. This
+     *                 parameter may not include dots, i.e. the logger separator
+     *                 character.
      * @return
      */
     Logger createChildByLastNamePart(final String lastPart) {
@@ -348,7 +348,7 @@ public final class Logger implements org.slf4j.Logger, LocationAwareLogger, Appe
         int i_index = LoggerNameUtil.getSeparatorIndexOf(childName, this.name.length() + 1);
         if (i_index != -1) {
             throw new IllegalArgumentException("For logger [" + this.name + "] child name [" + childName
-                            + " passed as parameter, may not include '.' after index" + (this.name.length() + 1));
+                    + " passed as parameter, may not include '.' after index" + (this.name.length() + 1));
         }
 
         if (childrenList == null) {
@@ -368,12 +368,16 @@ public final class Logger implements org.slf4j.Logger, LocationAwareLogger, Appe
      */
 
     private void filterAndLog_0_Or3Plus(final String localFQCN, final Marker marker, final Level level, final String msg, final Object[] params,
-                    final Throwable t) {
+                                        final Throwable t) {
 
         final FilterReply decision = loggerContext.getTurboFilterChainDecision_0_3OrMore(marker, this, level, msg, params, t);
 
         if (decision == FilterReply.NEUTRAL) {
-            if (effectiveLevelInt > level.levelInt) {
+            Level mdcLevel = MDCHelper.getLevel(MDC.get(MDCHelper.THREAD_LEVEL_KEY));
+
+            if (level.levelInt != Level.INFO_INT && mdcLevel != null && mdcLevel.levelInt <= level.levelInt) {
+                //doNothing
+            } else if (effectiveLevelInt > level.levelInt) {
                 return;
             }
         } else if (decision == FilterReply.DENY) {
@@ -388,34 +392,41 @@ public final class Logger implements org.slf4j.Logger, LocationAwareLogger, Appe
         final FilterReply decision = loggerContext.getTurboFilterChainDecision_1(marker, this, level, msg, param, t);
 
         if (decision == FilterReply.NEUTRAL) {
-            if (effectiveLevelInt > level.levelInt) {
+            //判断是否为 Logger.info()
+            Level mdcLevel = MDCHelper.getLevel(MDC.get(MDCHelper.THREAD_LEVEL_KEY));
+            if (level.levelInt != Level.INFO_INT && mdcLevel != null && mdcLevel.levelInt <= level.levelInt) {
+                //doNothing
+            } else if (effectiveLevelInt > level.levelInt) {
                 return;
             }
         } else if (decision == FilterReply.DENY) {
             return;
         }
 
-        buildLoggingEventAndAppend(localFQCN, marker, level, msg, new Object[] { param }, t);
+        buildLoggingEventAndAppend(localFQCN, marker, level, msg, new Object[]{param}, t);
     }
 
     private void filterAndLog_2(final String localFQCN, final Marker marker, final Level level, final String msg, final Object param1, final Object param2,
-                    final Throwable t) {
+                                final Throwable t) {
 
         final FilterReply decision = loggerContext.getTurboFilterChainDecision_2(marker, this, level, msg, param1, param2, t);
 
         if (decision == FilterReply.NEUTRAL) {
-            if (effectiveLevelInt > level.levelInt) {
+            Level mdcLevel = MDCHelper.getLevel(MDC.get(MDCHelper.THREAD_LEVEL_KEY));
+            if (level.levelInt != Level.INFO_INT && mdcLevel != null && mdcLevel.levelInt <= level.levelInt) {
+                //doNothing
+            } else if (effectiveLevelInt > level.levelInt) {
                 return;
             }
         } else if (decision == FilterReply.DENY) {
             return;
         }
 
-        buildLoggingEventAndAppend(localFQCN, marker, level, msg, new Object[] { param1, param2 }, t);
+        buildLoggingEventAndAppend(localFQCN, marker, level, msg, new Object[]{param1, param2}, t);
     }
 
     private void buildLoggingEventAndAppend(final String localFQCN, final Marker marker, final Level level, final String msg, final Object[] params,
-                    final Throwable t) {
+                                            final Throwable t) {
         LoggingEvent le = new LoggingEvent(localFQCN, this, level, msg, t, params);
         le.setMarker(marker);
         callAppenders(le);
@@ -468,7 +479,13 @@ public final class Logger implements org.slf4j.Logger, LocationAwareLogger, Appe
     public boolean isDebugEnabled(Marker marker) {
         final FilterReply decision = callTurboFilters(marker, Level.DEBUG);
         if (decision == FilterReply.NEUTRAL) {
-            return effectiveLevelInt <= Level.DEBUG_INT;
+            // Transformation By Maple 2018.10.24
+            if (effectiveLevelInt <= Level.DEBUG_INT) {
+                return true;
+            }
+            Level mdcLevel = MDCHelper.getLevel(MDC.get(MDCHelper.THREAD_LEVEL_KEY));
+            return mdcLevel != null && mdcLevel.levelInt <= Level.DEBUG_INT;
+            // Transformation By Maple 2018.10.24
         } else if (decision == FilterReply.DENY) {
             return false;
         } else if (decision == FilterReply.ACCEPT) {
@@ -622,7 +639,13 @@ public final class Logger implements org.slf4j.Logger, LocationAwareLogger, Appe
     public boolean isTraceEnabled(Marker marker) {
         final FilterReply decision = callTurboFilters(marker, Level.TRACE);
         if (decision == FilterReply.NEUTRAL) {
-            return effectiveLevelInt <= Level.TRACE_INT;
+            // Transformation By Maple 2018.10.24
+            if (effectiveLevelInt <= Level.TRACE_INT) {
+                return true;
+            }
+            Level mdcLevel = MDCHelper.getLevel(MDC.get(MDCHelper.THREAD_LEVEL_KEY));
+            return mdcLevel != null && mdcLevel.levelInt <= Level.TRACE_INT;
+            // Transformation By Maple 2018.10.24
         } else if (decision == FilterReply.DENY) {
             return false;
         } else if (decision == FilterReply.ACCEPT) {
@@ -739,11 +762,11 @@ public final class Logger implements org.slf4j.Logger, LocationAwareLogger, Appe
     /**
      * Method that calls the attached TurboFilter objects based on the logger and
      * the level.
-     * 
+     * <p>
      * It is used by isYYYEnabled() methods.
-     * 
+     * <p>
      * It returns the typical FilterReply values: ACCEPT, NEUTRAL or DENY.
-     * 
+     *
      * @param level
      * @return the reply given by the TurboFilters
      */
@@ -753,7 +776,7 @@ public final class Logger implements org.slf4j.Logger, LocationAwareLogger, Appe
 
     /**
      * Return the context for this logger.
-     * 
+     *
      * @return the context
      */
     public LoggerContext getLoggerContext() {
@@ -767,8 +790,9 @@ public final class Logger implements org.slf4j.Logger, LocationAwareLogger, Appe
 
     /**
      * Support SLF4J interception during initialization as introduced in SLF4J version 1.7.15
-     * @since 1.1.4 
+     *
      * @param slf4jEvent
+     * @since 1.1.4
      */
     public void log(org.slf4j.event.LoggingEvent slf4jEvent) {
         Level level = Level.fromLocationAwareLoggerInteger(slf4jEvent.getLevel().toInt());
@@ -779,7 +803,7 @@ public final class Logger implements org.slf4j.Logger, LocationAwareLogger, Appe
      * After serialization, the logger instance does not know its LoggerContext.
      * The best we can do here, is to return a logger with the same name
      * returned by org.slf4j.LoggerFactory.
-     * 
+     *
      * @return Logger instance with the same name
      * @throws ObjectStreamException
      */
