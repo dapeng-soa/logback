@@ -5,30 +5,24 @@
 
     <modelVersion>4.0.0</modelVersion>
 
+    <parent>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-parent</artifactId>
+        <version>1.2.3</version>
+    </parent>
+
     <groupId>com.github.dapeng-soa</groupId>
     <artifactId>logback-classic</artifactId>
-    <version>1.2.3</version>
     <packaging>jar</packaging>
     <name>Logback Classic Module</name>
     <description>logback-classic module</description>
 
 
-    <properties>
-        <java.version>1.8</java.version>
-        <logback.project.version>1.2.3</logback.project.version>
-        <slf4j.version>1.7.25</slf4j.version>
-        <cal10n.version>0.8.1</cal10n.version>
-        <janino.version>3.0.6</janino.version>
-        <javax.mail.version>1.4</javax.mail.version>
-        <junit.version>4.10</junit.version>
-        <groovy.version>2.4.0</groovy.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
-            <version>${logback.project.version}</version>
+            <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -133,7 +127,7 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
-            <version>${logback.project.version}</version>
+            <version>${project.version}</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
@@ -273,7 +267,7 @@
                         <phase>package</phase>
                         <configuration>
                             <target>
-                                <property name="currentVersion" value="${logback.project.version}"/>
+                                <property name="currentVersion" value="${project.version}"/>
                                 <property name="slf4j.version" value="${slf4j.version}"/>
                                 <property name="basedir" value="${basedir}"/>
                                 <ant antfile="${basedir}/osgi-build.xml"/>
